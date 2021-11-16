@@ -3,3 +3,5 @@
 !.gitignore
 !goodWillHunting.ipynb
 !README.md
+!rw_animation_data
+!rw_animation_data/*
