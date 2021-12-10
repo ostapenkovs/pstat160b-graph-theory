@@ -214,15 +214,17 @@ def main():
     # Simulate 3 random walks of length 50
     NWALKS = 3
     WALKLEN = 25
-    data = modified_graph_rw_sim(NWALKS, WALKLEN, P, G, from_pi=False).astype(int)
-    plot_graph_rw_sim(data)
+    data1 = modified_graph_rw_sim(NWALKS, WALKLEN, P, G, from_pi=False).astype(int)
+    data2 = graph_rw_sim(NWALKS, WALKLEN, P, G, from_pi=False).astype(int)
+    plot_graph_rw_sim(data1)
+    plot_graph_rw_sim(data2)
 
     # Animate and save the random walk realizations
     pos = nx.spring_layout(G)
     figure, axes = plt.subplots(figsize=(10, 10))
     
-    for i, col in enumerate(data.columns):
-        ani = animation.FuncAnimation(figure, simple_update, frames=WALKLEN+1, fargs=(pos, G, axes, data[col]))
+    for i, col in enumerate(data2.columns):
+        ani = animation.FuncAnimation(figure, simple_update, frames=WALKLEN+1, fargs=(pos, G, axes, data2[col]))
         ani.save("./rw_animation_data/rw_realization" + str(i+1) + ".gif", writer="Pillow", dpi = 300)
 
     # Cover time simulations
@@ -262,3 +264,5 @@ def main():
 # %%
 if __name__ == "__main__":
     main()
+
+
