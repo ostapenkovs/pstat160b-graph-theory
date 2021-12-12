@@ -32,15 +32,44 @@ def calculate_pi(P):
     return [round(x, 3) for x in list(np.linalg.matrix_power(P, 10000)[0])]
 
 # %%
+# def graph_rw_sim(nsim, n, P, G, from_pi=False):
+#     # nsim different random walks of length n on G
+#     all_walks = []
+#     ps = P.shape[0]
+#     if from_pi == True:
+#         pi = calculate_pi(P)
+    
+#     for _ in range(nsim):
+#         walk = np.zeros(n+1)
+#         if from_pi == False:
+#             v0 = np.random.choice(sorted(G.nodes()), p=[.25, .25, .25, .25])
+#         else:
+#             v0 = np.random.choice(sorted(G.nodes()), p=pi)
+            
+#         walk[0] = v0
+
+#         current = v0-1
+#         for k in range(1, n+1):
+#             vk = np.random.choice(range(ps), 1, p=P[current])
+#             current = vk[0]
+#             walk[k] = current+1
+    
+#         all_walks.append(walk)
+
+#     simulation_data = pd.DataFrame(all_walks).T
+#     return simulation_data
+
 def graph_rw_sim(nsim, n, P, G, from_pi=False):
     # nsim different random walks of length n on G
     all_walks = []
+    all_cover_data = []
     ps = P.shape[0]
     if from_pi == True:
         pi = calculate_pi(P)
     
     for _ in range(nsim):
         walk = np.zeros(n+1)
+        cover_walk = np.zeros(n+1)
         if from_pi == False:
             v0 = np.random.choice(sorted(G.nodes()), p=[.25, .25, .25, .25])
         else:
@@ -49,15 +78,23 @@ def graph_rw_sim(nsim, n, P, G, from_pi=False):
         walk[0] = v0
 
         current = v0-1
+        visited = [v0]
+        cover_walk[0] = len(set(sorted(visited)))
         for k in range(1, n+1):
             vk = np.random.choice(range(ps), 1, p=P[current])
             current = vk[0]
             walk[k] = current+1
+            visited.append(current+1)
+            cover_walk[k] = len(set(sorted(visited)))
     
         all_walks.append(walk)
+        all_cover_data.append(cover_walk)
 
     simulation_data = pd.DataFrame(all_walks).T
-    return simulation_data
+    cover_data = pd.DataFrame(all_cover_data).T
+    return simulation_data, cover_data
+
+
 
 # %%
 def plot_graph_rw_sim(data):
@@ -214,17 +251,17 @@ def main():
     # Simulate 3 random walks of length 50
     NWALKS = 3
     WALKLEN = 25
-    data1 = modified_graph_rw_sim(NWALKS, WALKLEN, P, G, from_pi=False).astype(int)
-    data2 = graph_rw_sim(NWALKS, WALKLEN, P, G, from_pi=False).astype(int)
-    plot_graph_rw_sim(data1)
-    plot_graph_rw_sim(data2)
+    #data1 = modified_graph_rw_sim(NWALKS, WALKLEN, P, G, from_pi=False).astype(int)
+    data1, data2 = graph_rw_sim(NWALKS, WALKLEN, P, G, from_pi=False)
+    plot_graph_rw_sim(data2.astype(int))
+    # plot_graph_rw_sim(data2)
 
     # Animate and save the random walk realizations
     pos = nx.spring_layout(G)
     figure, axes = plt.subplots(figsize=(10, 10))
     
     for i, col in enumerate(data2.columns):
-        ani = animation.FuncAnimation(figure, simple_update, frames=WALKLEN+1, fargs=(pos, G, axes, data2[col]))
+        ani = animation.FuncAnimation(figure, simple_update, frames=WALKLEN+1, fargs=(pos, G, axes, (data1.astype(int))[col]))
         ani.save("./rw_animation_data/rw_realization" + str(i+1) + ".gif", writer="Pillow", dpi = 300)
 
     # Cover time simulations
